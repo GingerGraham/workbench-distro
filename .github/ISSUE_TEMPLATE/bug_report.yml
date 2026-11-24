@@ -1,0 +1,86 @@
+name: Bug report
+description: Report unexpected behaviour in __MODULE_REPO__
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. If this looks like an
+        install/sync issue rather than something specific to this module,
+        workbench-core's [troubleshooting guide](https://github.com/GingerGraham/workbench-core/blob/main/docs/guide/troubleshooting.md)
+        is worth a quick check first.
+  - type: input
+    id: module-version
+    attributes:
+      label: __MODULE_REPO__ version
+      description: Output of `wb module info __MODULE_SHORT__`
+    validations:
+      required: true
+  - type: input
+    id: core-version
+    attributes:
+      label: workbench-core version
+      description: Output of `wb version`
+    validations:
+      required: false
+  - type: dropdown
+    id: os-family
+    attributes:
+      label: Operating system
+      description: The OS you ran it on. For WSL2 or a container, pick the distro running inside it.
+      options:
+        - Fedora / RHEL family (Fedora, RHEL, CentOS Stream, Rocky, Alma)
+        - Debian / Ubuntu family (Debian, Ubuntu, Linux Mint, Pop!_OS)
+        - Arch family (Arch, Manjaro, EndeavourOS, CachyOS)
+        - SUSE family (openSUSE Tumbleweed or Leap, SLE)
+        - Other Linux
+        - macOS
+    validations:
+      required: true
+  - type: input
+    id: distro-version
+    attributes:
+      label: Distribution and version
+      description: Exact distro and release, e.g. from `/etc/os-release` (`PRETTY_NAME`) or `sw_vers` on macOS.
+      placeholder: "Fedora Linux 43 (Workstation Edition)"
+    validations:
+      required: false
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where it was running.
+      options:
+        - Directly on the OS (physical machine or VM)
+        - Container
+        - WSL2
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you expected to happen too, if it's not obvious.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Re-run with `WORKBENCH_DEBUG=true` if you can, and paste the relevant portion. This renders as a code block automatically.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked workbench-core's troubleshooting guide first, if this looked like an install/sync issue
+          required: false
