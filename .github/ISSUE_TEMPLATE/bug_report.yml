@@ -1,5 +1,5 @@
 name: Bug report
-description: Report unexpected behaviour in __MODULE_REPO__
+description: Report unexpected behaviour in workbench-distro
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -13,8 +13,8 @@ body:
   - type: input
     id: module-version
     attributes:
-      label: __MODULE_REPO__ version
-      description: Output of `wb module info __MODULE_SHORT__`
+      label: workbench-distro version
+      description: Output of `wb module info distro`
     validations:
       required: true
   - type: input

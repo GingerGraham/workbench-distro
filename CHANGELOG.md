@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `__MODULE_REPO__` are documented here.
+All notable changes to `workbench-distro` are documented here.
 
 ## [Unreleased]
 

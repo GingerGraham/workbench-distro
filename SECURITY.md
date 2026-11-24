@@ -9,7 +9,7 @@ There are no maintained LTS branches.
 
 **Please don't open a public issue for a security problem.** Use
 GitHub's private vulnerability reporting instead: go to the
-[Security tab](https://github.com/__MODULE_OWNER__/__MODULE_REPO__/security)
+[Security tab](https://github.com/GingerGraham/workbench-distro/security)
 → "Report a vulnerability". This opens a private advisory only visible
 to the maintainer until it's resolved.
 
@@ -32,7 +32,7 @@ live in `workbench-core`'s own
 What's specific to this repo:
 
 - **`hooks.post_deploy` only runs if the machine explicitly opted in**
-  with `wb add __MODULE_SHORT__ --allow-hooks` — an undeclared or ungated hook
+  with `wb add distro --allow-hooks` — an undeclared or ungated hook
   is silently a no-op. If you find a way for this module's hook to run
   without that flag, report it.
 - **This module's registered shell content is confined to its own

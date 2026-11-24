@@ -1,4 +1,4 @@
-# Agent instructions — __MODULE_REPO__
+# Agent instructions — workbench-distro
 
 This file is the canonical, tool-agnostic entry point for any AI coding
 agent working in this repo — Claude Code reads it via `CLAUDE.md`'s

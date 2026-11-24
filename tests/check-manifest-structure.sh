@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tests/check-manifest-structure.sh — __MODULE_REPO__
+# tests/check-manifest-structure.sh — workbench-distro
 # Plain bash, numbered OK:/FAIL: checks, matching workbench-core's
 # tests/check-*.sh convention (no framework). Structural checks only.
 set -uo pipefail

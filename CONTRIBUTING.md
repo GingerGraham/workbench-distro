@@ -1,7 +1,7 @@
-# Contributing to __MODULE_REPO__
+# Contributing to workbench-distro
 
 This is a `workbench` ecosystem module — it doesn't stand alone. It's
-installed into a machine via `workbench-core`'s `wb add __MODULE_SHORT__`. Full
+installed into a machine via `workbench-core`'s `wb add distro`. Full
 design rationale lives in `workbench-core`'s
 [`docs/architecture.md`](https://github.com/GingerGraham/workbench-core/blob/main/docs/architecture.md)
 and [`docs/decisions-log.md`](https://github.com/GingerGraham/workbench-core/blob/main/docs/decisions-log.md)
@@ -26,16 +26,16 @@ working branch, from a machine that already has `workbench-core`
 installed:
 
 ```sh
-git clone https://github.com/__MODULE_OWNER__/__MODULE_REPO__.git
-cd __MODULE_REPO__
+git clone https://github.com/GingerGraham/workbench-distro.git
+cd workbench-distro
 
 # if not already registered on this machine:
-wb add __MODULE_SHORT__
+wb add distro
 
 # point this module's tracking at your working branch:
-wb dev __MODULE_SHORT__
+wb dev distro
 # — or directly:
-wb track __MODULE_SHORT__ --branch <your-branch>
+wb track distro --branch <your-branch>
 ```
 
 `wb dev`/`wb track --branch` fetches a **separate**, independently

@@ -1,4 +1,4 @@
-# __MODULE_REPO__
+# workbench-distro
 
 <!-- TODO: one-sentence description of what this module does. -->
 
@@ -6,7 +6,7 @@ An **ecosystem module** (`workbench-core` ARCHITECTURE.md §2) — meaningless
 standalone. Requires `workbench-core` installed first:
 
 ```sh
-wb add __MODULE_SHORT__
+wb add distro
 # or, as part of a bundle:
 wb install --bundle <bundle-name>
 ```
@@ -41,7 +41,7 @@ no shared git history, which is what fires the `push` event
 `.github/workflows/template-bootstrap.yml` listens for.
 
 On the new repo's first push, that workflow substitutes
-`__MODULE_OWNER__`/`__MODULE_REPO__`/`__MODULE_SHORT__` throughout the
+`GingerGraham`/`workbench-distro`/`distro` throughout the
 tree, commits the result, and deletes itself — no manual step required.
 **Do this before** applying the standard module branch ruleset
 (mirroring the other `workbench-*` repos) to the new repo: a freshly

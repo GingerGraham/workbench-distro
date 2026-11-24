@@ -51,5 +51,5 @@ jobs:
       contents: read
     uses: GingerGraham/workbench-core/.github/workflows/module-ci.yml@v2.26.2
     with:
-      module_name: __MODULE_SHORT__
+      module_name: distro
       core_ref: ${{ github.event.inputs.core_ref || '' }}

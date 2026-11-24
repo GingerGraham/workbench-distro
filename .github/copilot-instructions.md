@@ -1,4 +1,4 @@
-# Copilot instructions — __MODULE_REPO__
+# Copilot instructions — workbench-distro
 
 Adapted from `AGENTS.md` at the repo root — same content, with this
 file's own preface and its relative links path-adjusted for its

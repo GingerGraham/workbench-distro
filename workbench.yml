@@ -1,10 +1,10 @@
-# workbench.yml — __MODULE_REPO__
+# workbench.yml — workbench-distro
 version: 2
 branch: main
 core_api: ">=1.10 <2.0"  # 1.10 is the floor for workbench_alias_define (D124); 1.8 added core-generated getters (D89). Raise it if you use something newer
 
 info:
-  description: "TODO: one-line description of __MODULE_SHORT__"
+  description: "TODO: one-line description of distro"
 
 register:
   shell: []
