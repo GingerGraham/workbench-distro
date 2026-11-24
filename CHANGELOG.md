@@ -4,6 +4,8 @@ All notable changes to `workbench-distro` are documented here.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-24
+
 ### Added
 
 - **`distro-update`, `distro-upgrade`, `distro-reboot-required` and
