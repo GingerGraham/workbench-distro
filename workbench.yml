@@ -1,20 +1,38 @@
 # workbench.yml — workbench-distro
 version: 2
 branch: main
-core_api: ">=1.10 <2.0"  # 1.10 is the floor for workbench_alias_define (D124); 1.8 added core-generated getters (D89). Raise it if you use something newer
+core_api: ">=1.11 <2.0"  # 1.11 adds WORKBENCH_DISTRO_ID and exact-ID distro-tier files (D126)
+
+sync:
+  enabled: true
 
 info:
-  description: "TODO: one-line description of distro"
+  description: "Distro updates, release upgrades and package-manager tuning"
 
 register:
-  shell: []
-  installers: []
-  getters: []
-
-deploy: []
-
-# hooks:
-#   post_deploy:
-#     command: ["hooks/post-deploy.sh"]
-#     run_on: changed
-#     timeout: 300
+  shell:
+    - src: shell/distro.sh
+      tier: tools
+    # Family file before ID file in each pair, so the specific one wins (D126).
+    - src: shell/distro/rhel.sh
+      tier: distro
+    - src: shell/distro/fedora.sh
+      tier: distro
+    - src: shell/distro/debian.sh
+      tier: distro
+    - src: shell/distro/ubuntu.sh
+      tier: distro
+    - src: shell/distro/pop.sh
+      tier: distro
+    - src: shell/distro/arch.sh
+      tier: distro
+    - src: shell/distro/suse.sh
+      tier: distro
+    - src: shell/distro/opensuse-leap.sh
+      tier: distro
+  installers:
+    - src: shell/installers.sh
+  getters:
+    - name: distro
+      function: get-distro-functions
+      label: "Distro update, release-upgrade and tuning helpers"
