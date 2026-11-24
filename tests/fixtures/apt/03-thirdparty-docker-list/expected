@@ -1,0 +1,3 @@
+deb http://deb.debian.org/debian trixie main
+deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable
+deb [ arch=amd64 signed-by=/usr/share/keyrings/tailscale.gpg ] https://pkgs.tailscale.com/stable/debian bookworm main

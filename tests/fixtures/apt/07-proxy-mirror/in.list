@@ -1,0 +1,4 @@
+deb http://cache:3142/deb.debian.org/debian bookworm main
+deb http://cache:3142/deb.debian.org/debian-security/ bookworm-security main
+deb http://cache:3142/mirror.example.edu/pub/debian bookworm main
+deb http://cache.lan:3142/debian bookworm main

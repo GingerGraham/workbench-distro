@@ -1,0 +1,4 @@
+deb http://cache:3142/deb.debian.org/debian trixie main
+deb http://cache:3142/deb.debian.org/debian-security/ trixie-security main
+deb http://cache:3142/mirror.example.edu/pub/debian bookworm main
+deb http://cache.lan:3142/debian trixie main

@@ -1,0 +1,23 @@
+Types: deb
+URIs: http://deb.debian.org/debian
+Suites: trixie
+Components: main
+
+Types: deb
+URIs: https://packages.example.org/apt
+Suites: bookworm
+Components: main
+Signed-By:
+ -----BEGIN PGP PUBLIC KEY BLOCK-----
+ .
+ FAKEKEYBODYFAKEKEYBODYFAKEKEYBODYFAKEKEYBODYFAKEKEYBODYFAKEKEY
+ Bookworm bookworm bookworm   keep   this   spacing
+ =FAKE
+ -----END PGP PUBLIC KEY BLOCK-----
+Enabled: no
+
+Types: deb
+URIs: https://packages.example.net/apt
+Suites: bookworm
+Components: main
+Enabled: no
