@@ -66,7 +66,7 @@ EOF
 # ── Fakes ─────────────────────────────────────────────────────────────────────
 # Package managers: an install step supplies Homebrew's prerequisites unless
 # PREREQ_PROVIDE=no. dnf also answers `needs-restarting` for distro-update.
-PROVIDE='for t in gcc make curl file git ps; do [ -e "${HOME}/bin/${t}" ] || /bin/ln -s /bin/true "${HOME}/bin/${t}"; done'
+PROVIDE='for t in gcc make curl file git ps; do [ -e "${HOME}/bin/${t}" ] || /bin/ln -s /usr/bin/true "${HOME}/bin/${t}"; done'
 fake apt-get 'case "$*" in *install*) [ "${PREREQ_PROVIDE:-yes}" = yes ] && { '"${PROVIDE}"'; } ;; esac'
 fake dnf 'case "$*" in needs-restarting*) exit "${NR_RC:-0}" ;; *install*) [ "${PREREQ_PROVIDE:-yes}" = yes ] && { '"${PROVIDE}"'; } ;; esac'
 fake pacman 'case "$*" in *base-devel*) [ "${PREREQ_PROVIDE:-yes}" = yes ] && { '"${PROVIDE}"'; } ;; esac'
@@ -220,7 +220,7 @@ case "${SCENARIO}" in
         check "y: the line ran elevated" 'logged "^elev apt-get install -y build-essential procps curl file git$"'
         check "y: and reached the package manager" 'logged "^apt-get install -y build-essential"'
         check "y: install.sh runs after the prerequisites" 'line_before "^apt-get install" "^install.sh ran"'
-        check "y: install.sh was downloaded from Homebrew/install HEAD" 'logged "^download fake://install.sh$"'
+        check "y: install.sh was downloaded from the install script URL" 'logged "^download fake://install.sh$"'
         ;;
     prereq-still-missing)
         install-brew >"${INST}" 2>&1; rc=$?
