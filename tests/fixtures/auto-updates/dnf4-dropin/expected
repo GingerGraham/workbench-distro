@@ -1,0 +1,6 @@
+# Written by workbench-distro (wb tools install auto-updates).
+# Runs dnf-automatic with workbench's settings, leaving the package's
+# @PACKAGED_CONF@ untouched.
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dnf-automatic @DNF4_CONF@ --timer

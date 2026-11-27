@@ -1,0 +1,11 @@
+# Written by workbench-distro (wb tools install auto-updates).
+# workbench-auto-updates: scope=security reboot=never enabled-timers=dnf-automatic.timer
+# Change with: AUTO_UPDATES_SCOPE=<security|all> AUTO_UPDATES_REBOOT=<never|when-needed> wb tools upgrade auto-updates
+# Turn off with: distro-auto-updates off
+[commands]
+upgrade_type = security
+download_updates = True
+apply_updates = True
+
+[emitters]
+emit_via = stdio

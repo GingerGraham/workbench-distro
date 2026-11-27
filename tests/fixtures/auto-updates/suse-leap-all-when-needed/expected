@@ -1,0 +1,6 @@
+# Written by workbench-distro (wb tools install auto-updates).
+# workbench-auto-updates: scope=all reboot=when-needed enabled-timers=os-update.timer
+# Change with: AUTO_UPDATES_SCOPE=<security|all> AUTO_UPDATES_REBOOT=<never|when-needed> wb tools upgrade auto-updates
+# Turn off with: distro-auto-updates off
+UPDATE_CMD="up"
+REBOOT_CMD="auto"

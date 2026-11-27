@@ -7,11 +7,14 @@ sync:
   enabled: true
 
 info:
-  description: "Distro updates, release upgrades and package-manager tuning"
+  description: "Distro updates, release upgrades, unattended updates and package-manager tuning"
 
 register:
   shell:
     - src: shell/distro.sh
+      tier: tools
+    # After distro.sh: uses _distro_supported and _distro_elev from it.
+    - src: shell/distro-auto-updates.sh
       tier: tools
     # Family file before ID file in each pair, so the specific one wins (D126).
     - src: shell/distro/rhel.sh
@@ -32,6 +35,7 @@ register:
       tier: distro
   installers:
     - src: shell/installers.sh
+    - src: shell/installers-auto-updates.sh
   getters:
     - name: distro
       function: get-distro-functions
