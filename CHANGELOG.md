@@ -4,6 +4,8 @@ All notable changes to `workbench-distro` are documented here.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-27
+
 ### Added
 
 - **`wb tools install brew`.** Installs Homebrew on macOS and on Linux (x86_64
