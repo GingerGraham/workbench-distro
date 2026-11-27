@@ -4,6 +4,8 @@ All notable changes to `workbench-distro` are documented here.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-27
+
 ### Added
 
 - **`wb tools install auto-updates` and `distro-auto-updates`.** Turns on the
