@@ -1,17 +1,19 @@
 # workbench.yml — workbench-distro
 version: 2
 branch: main
-core_api: ">=1.11 <2.0"  # 1.11 adds WORKBENCH_DISTRO_ID and exact-ID distro-tier files (D126)
+core_api: ">=1.14 <2.0"  # 1.14 puts Homebrew on PATH before any tier (D134); 1.11 added WORKBENCH_DISTRO_ID (D126)
 
 sync:
   enabled: true
 
 info:
-  description: "Distro updates, release upgrades, unattended updates and package-manager tuning"
+  description: "Distro and Homebrew updates, release upgrades, unattended updates and package-manager tuning"
 
 register:
   shell:
     - src: shell/distro.sh
+      tier: tools
+    - src: shell/brew.sh
       tier: tools
     # After distro.sh: uses _distro_supported and _distro_elev from it.
     - src: shell/distro-auto-updates.sh
@@ -36,6 +38,7 @@ register:
   installers:
     - src: shell/installers.sh
     - src: shell/installers-auto-updates.sh
+    - src: shell/installers-brew.sh
   getters:
     - name: distro
       function: get-distro-functions
