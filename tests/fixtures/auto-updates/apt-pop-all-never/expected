@@ -1,0 +1,20 @@
+// Written by workbench-distro (wb tools install auto-updates).
+// workbench-auto-updates: scope=all reboot=never enabled-timers=apt-daily.timer,apt-daily-upgrade.timer
+// Change with: AUTO_UPDATES_SCOPE=<security|all> AUTO_UPDATES_REBOOT=<never|when-needed> wb tools upgrade auto-updates
+// Turn off with: distro-auto-updates off
+// Read after 20auto-upgrades and 50unattended-upgrades, so these values
+// win; the #clear lines drop the origin lists those files set.
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+#clear Unattended-Upgrade::Allowed-Origins;
+#clear Unattended-Upgrade::Origins-Pattern;
+Unattended-Upgrade::Origins-Pattern {
+    "origin=Ubuntu,archive=${distro_codename}-security";
+    "origin=UbuntuESMApps,archive=${distro_codename}-apps-security";
+    "origin=UbuntuESM,archive=${distro_codename}-infra-security";
+    "origin=Ubuntu,archive=${distro_codename}-updates";
+    "origin=UbuntuESMApps,archive=${distro_codename}-apps-updates";
+    "origin=UbuntuESM,archive=${distro_codename}-infra-updates";
+    "origin=pop-os-release,codename=${distro_codename}";
+};
+Unattended-Upgrade::Automatic-Reboot "false";

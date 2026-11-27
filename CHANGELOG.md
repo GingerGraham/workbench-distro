@@ -4,6 +4,15 @@ All notable changes to `workbench-distro` are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **`wb tools install auto-updates` and `distro-auto-updates`.** Turns on the
+  distribution's own unattended updates (dnf5 automatic, dnf-automatic,
+  unattended-upgrades, os-update) for security updates only or all updates,
+  with an optional reboot when needed. Settings go in files workbench creates
+  and marks, a rerun keeps the recorded settings, and
+  `distro-auto-updates off` undoes only what workbench did.
+
 ## [0.1.0] - 2026-11-24
 
 ### Added

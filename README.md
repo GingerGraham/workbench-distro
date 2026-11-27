@@ -1,6 +1,6 @@
 # workbench-distro
 
-Distro updates, release upgrades and package-manager tuning for the
+Distro updates, release upgrades, unattended updates and package-manager tuning for the
 [`workbench`](https://github.com/GingerGraham/workbench-core) ecosystem.
 
 An **ecosystem module**: meaningless standalone. It needs `workbench-core`
@@ -34,6 +34,8 @@ reason, by `get-distro-functions` and `wb functions`.
 | `zypper-update [--ask] [--clean]` | SUSE family | `zypper dup` on Tumbleweed and Slowroll, `zypper update` on Leap. |
 | `opensuse-release-upgrade [--dry-run]` | openSUSE Leap | Wraps `opensuse-migration-tool`. |
 | `wb tools install dnf-tuning` | Fedora, RHEL family, DNF 5 | Writes `/etc/dnf/libdnf5.conf.d/50-workbench.conf`. |
+| `wb tools install auto-updates` | Fedora, RHEL family, Debian, Ubuntu, Pop!_OS, SUSE family, with systemd | Turns on the distribution's own unattended updates: security only or all, with an optional reboot. |
+| `distro-auto-updates [status\|off]` | Fedora, RHEL family, Debian, Ubuntu, Pop!_OS, SUSE family | Shows what runs unattended updates, with what settings, and when. `off` undoes what workbench did. Exit 0 on, 1 off, 2 unsupported or unknown. |
 
 The routine `*-update` commands run without asking, as the dotfiles aliases
 they replace did. `--ask` turns that off. Release upgrades always need a
@@ -200,10 +202,143 @@ To remove it:
 sudo rm /etc/dnf/libdnf5.conf.d/50-workbench.conf
 ```
 
+## Unattended updates (`wb tools install auto-updates`)
+
+Turns on the update service your distribution already ships, and writes its
+settings to a file workbench creates and marks with a
+`Written by workbench-distro (wb tools install auto-updates).` line.
+
+| Host | Service | File workbench writes | Timer |
+|---|---|---|---|
+| Fedora 41+ (DNF 5) | `dnf5 automatic` (`dnf5-plugin-automatic`) | `/etc/dnf/automatic.conf` | `dnf5-automatic.timer` |
+| RHEL, Rocky, AlmaLinux, CentOS Stream (DNF 4) | `dnf-automatic` | `/etc/dnf/automatic-workbench.conf`, and a drop-in `/etc/systemd/system/dnf-automatic.service.d/50-workbench.conf` | `dnf-automatic.timer` |
+| Debian, Ubuntu, Pop!_OS | `unattended-upgrades` | `/etc/apt/apt.conf.d/52workbench-auto-updates` | `apt-daily.timer`, `apt-daily-upgrade.timer` |
+| openSUSE Leap, Tumbleweed, Slowroll | `os-update` | `/etc/os-update.conf` | `os-update.timer` |
+
+It installs the package if it's missing, writes the file, and enables the
+timers that were off. It never edits a file it didn't write: if a file of the
+same name exists without the marker, it stops, changes nothing, and prints the
+settings to set by hand.
+
+| Variable | Values | Default |
+|---|---|---|
+| `AUTO_UPDATES_SCOPE` | `security`, `all` | `security` on first install, afterwards what was recorded |
+| `AUTO_UPDATES_REBOOT` | `never`, `when-needed` | `never` on first install, afterwards what was recorded |
+
+Each file carries a state line, so a rerun keeps the recorded values unless you
+set a variable. A bare `wb tools upgrade auto-updates` never changes the policy.
+
+```sh
+wb tools install auto-updates                                   # security only, never reboot
+AUTO_UPDATES_SCOPE=all wb tools upgrade auto-updates            # switch to all updates
+AUTO_UPDATES_REBOOT=when-needed wb tools upgrade auto-updates   # scope unchanged
+```
+
+### What `security` and `all` mean
+
+| Host | `security` | `all` |
+|---|---|---|
+| Fedora, RHEL family | `upgrade_type = security`: updates whose advisory is marked as a security fix | `upgrade_type = default`: every update |
+| Debian | `Debian-Security` origins | Plus the release (point updates) and `-updates` |
+| Ubuntu | `-security` pocket and ESM security | Plus the `-updates` pocket and ESM updates |
+| Pop!_OS | Ubuntu `-security` and ESM security | Plus Ubuntu `-updates` and Pop's own release repository |
+| openSUSE | `security` (`zypper patch --category security`), Leap only | `dup` on Tumbleweed and Slowroll, `up` on Leap |
+
+- `all` means the distribution's own archives. Third-party apt repositories
+  (Docker, vendor repositories, PPAs) are never added to the origin list. dnf
+  has no such filter: it updates every enabled repository, the same as
+  `dnf upgrade`.
+- On Fedora, `security` installs updates whose advisory is marked as a
+  security fix. Fixes shipped in ordinary bug-fix updates wait until you run
+  `distro-update`.
+- On Pop!_OS, `security` doesn't cover Pop's own repository (kernel, COSMIC,
+  firmware), which has no security pocket. The installer warns about it.
+
+### Reboots
+
+`never` (the default) never reboots; `distro-reboot-required` still reports
+when one is due. `when-needed` reboots after an update run that needs it: five
+minutes later on dnf and apt (`shutdown -r +5`). `os-update` has no delay
+setting: it asks `rebootmgr` when that is running and reboots at once
+otherwise. `when-needed` isn't available on WSL, where a reboot stops the
+distro and Windows owns the kernel.
+
+### When it runs
+
+On the distribution's own timer schedule: `dnf5-automatic.timer` runs daily
+around 06:00 with up to an hour's random delay. That timer is `Persistent`, so
+a run missed while the machine was off (or the WSL distro was stopped) happens
+at the next start. apt's two timers and `os-update.timer` have their own
+schedules. To change the time, override the timer:
+
+```sh
+sudo systemctl edit dnf5-automatic.timer   # or dnf-automatic.timer, apt-daily-upgrade.timer, os-update.timer
+```
+
+```ini
+[Timer]
+OnCalendar=
+OnCalendar=*-*-* 03:00
+```
+
+GNOME Software and KDE Discover have their own automatic updates. They are
+separate; running both is harmless but redundant.
+
+### `distro-auto-updates`
+
+```sh
+distro-auto-updates          # same as: distro-auto-updates status
+distro-auto-updates off
+```
+
+`status` shows the backend and whether its package is installed, who owns the
+config file, the scope and reboot setting (from workbench's file), the timer,
+its next and last run, and `on` or `off`. It never elevates. Exit 0 when on,
+1 when off, 2 when this host has no supported service or `systemctl` can't be
+read. On apt, `on` means `APT::Periodic::Unattended-Upgrade` is set and
+`apt-daily-upgrade.timer` is enabled, whoever set them: on Ubuntu, the
+distribution's own default shows up as `distribution default (20auto-upgrades)`.
+
+`off` disables only the timers workbench enabled and removes only the files
+workbench wrote. It leaves behind:
+
+- the package (it prints the command to remove it);
+- timers that were already on before workbench, which keep running with the
+  package's own settings;
+- on Ubuntu, the distribution's own default, which still installs security
+  updates. `off` says so and prints
+  `sudo dpkg-reconfigure -plow unattended-upgrades`.
+
+### Refused
+
+| Host | Why, and what to use |
+|---|---|
+| Arch family, including Omarchy | Arch doesn't support unattended upgrades: some updates need manual steps announced on archlinux.org/news. Use `distro-update`. |
+| Linux Mint | Update Manager has its own automatic updates. |
+| Other Debian derivatives | Their archive origins aren't known to workbench. |
+| rpm-ostree (Fedora Atomic) | Set `AutomaticUpdatePolicy=stage` in `/etc/rpm-ostreed.conf` and enable `rpm-ostreed-automatic.timer`, or use the software centre. |
+| Containers | Recreate the container from a newer image. |
+| No systemd running, including WSL without systemd | Every backend is a systemd timer. On WSL, set `[boot]` `systemd=true` in `/etc/wsl.conf`. |
+| WSL with `AUTO_UPDATES_REBOOT=when-needed` | Use `never`. |
+| Tumbleweed, Slowroll with `security` | Rolling releases ship fixes as new snapshots, not security patches. Use `all`. |
+| CentOS Stream with `security` | Stream publishes no security advisories, so `security` would install nothing. Use `all`. |
+| DNF 4 older than 4.15 with `when-needed` | Its `dnf-automatic` can't reboot by itself. Use `never`. |
+
+### Trying it without waiting for the timer
+
+```sh
+sudo systemctl start dnf5-automatic.service     # then: journalctl -u dnf5-automatic.service
+sudo unattended-upgrade --dry-run --debug       # apt
+```
+
+SUSE and DNF 4 have been tested with stand-in commands only, not on a real
+host.
+
 ## Requires
 
 - `workbench-core` with `CORE_API_VERSION` 1.11 or later (exact-ID distro
   files).
 - `curl`, for `debian-release-upgrade`.
+- `systemd`, for `wb tools install auto-updates` (every backend is a timer).
 - `dnf5-plugins` (DNF 5) or `dnf-plugins-core` (DNF 4), for
   `distro-reboot-required` on Fedora and the rhel family.
