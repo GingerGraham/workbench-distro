@@ -4,6 +4,27 @@ All notable changes to `workbench-distro` are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **`wb tools install brew`.** Installs Homebrew on macOS and on Linux (x86_64
+  and aarch64). Apple Silicon on macOS 15 or later uses Homebrew's signed
+  `.pkg`, checked against GitHub's SHA-256 and a pinned Developer ID Team ID.
+  Apple Silicon on macOS 11-14 uses Homebrew's `install.sh` with a warning,
+  and Intel Macs are refused with Homebrew's reason (its installer stops
+  there). On Linux it reports Homebrew's prerequisites, asks once, then runs `install.sh`
+  on your terminal. With Homebrew already installed it runs `brew update`, so
+  `wb tools upgrade brew` works on a Homebrew you installed yourself.
+- **`brew-update [--greedy] [--cleanup]`.** `brew update` then `brew upgrade`,
+  as your user, never as root.
+- **`distro-update` covers Homebrew.** On Linux it runs `brew-update` after
+  Flatpak when Homebrew is installed (`--no-brew` skips it, and a failure
+  warns, as Flatpak's does). On macOS it updates Homebrew.
+
+### Changed
+
+- **Needs `workbench-core` 1.14 or later**, which puts Homebrew on `PATH`
+  before any module loads.
+
 ## [0.2.0] - 2026-11-27
 
 ### Added

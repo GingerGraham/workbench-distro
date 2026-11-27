@@ -76,24 +76,38 @@ _distro_supported() {
     [[ "${WORKBENCH_OS:-}" == "Linux" && "${WORKBENCH_DISTRO:-unknown}" != "unknown" ]]
 }
 
+# distro-update also runs on macOS, where it updates Homebrew (D134).
+_distro_update_supported() {
+    _distro_supported || [[ "${WORKBENCH_OS:-}" == "Mac" ]]
+}
+
 _wb_alias_availability --needs "a supported Linux distribution (Fedora/RHEL, Debian/Ubuntu, Arch or SUSE family)" \
-    _distro_supported distro-update distro-upgrade distro-reboot-required distro-info
+    _distro_supported distro-upgrade distro-reboot-required distro-info
+_wb_alias_availability --needs "a supported Linux distribution, or macOS" \
+    _distro_update_supported distro-update
 
 # ── Commands ──────────────────────────────────────────────────────────────────
 
 distro-update() {
-    local skip_flatpak="false" arg updater=""
+    local skip_flatpak="false" skip_brew="false" arg updater=""
     for arg in "$@"; do
         case "${arg}" in
             --no-flatpak) skip_flatpak="true" ;;
+            --no-brew)    skip_brew="true" ;;
             -h|--help)
-                printf '%s\n' "Usage: distro-update [--no-flatpak]" \
-                    "Updates this system's packages with its own package manager, then Flatpak apps."
+                printf '%s\n' "Usage: distro-update [--no-flatpak] [--no-brew]" \
+                    "Linux: updates this system's packages with its own package manager, then Flatpak apps, then Homebrew if it's installed." \
+                    "macOS: updates Homebrew and its packages."
                 return 0
                 ;;
             *) log_error "distro-update: unknown option '${arg}'"; return 2 ;;
         esac
     done
+
+    if [[ "${WORKBENCH_OS:-}" == "Mac" ]]; then
+        _distro_update_macos "${skip_brew}"
+        return $?
+    fi
 
     case "${WORKBENCH_DISTRO:-unknown}" in
         rhel)   updater="dnf-update" ;;
@@ -113,11 +127,33 @@ distro-update() {
         flatpak update -y --noninteractive || log_warn "distro-update: flatpak update failed (packages were updated)"
     fi
 
+    if [[ "${skip_brew}" != "true" ]] && command -v brew >/dev/null 2>&1; then
+        if command -v brew-update >/dev/null 2>&1; then
+            brew-update || log_warn "distro-update: Homebrew update failed (packages were updated)"
+        else
+            log_warn "distro-update: brew-update isn't loaded in this shell. Start a new shell to include Homebrew."
+        fi
+    fi
+
     # shellcheck disable=SC2119
     if distro-reboot-required >/dev/null 2>&1; then
         log_warn "distro-update: a reboot is recommended — $(_distro_reboot_word)"
     fi
     return 0
+}
+
+# _distro_update_macos <skip_brew>
+_distro_update_macos() {
+    if [[ "$1" == "true" ]]; then
+        log_info "distro-update: with --no-brew there's nothing to update on macOS."
+        return 0
+    fi
+    if ! command -v brew >/dev/null 2>&1; then
+        log_error "distro-update: on macOS this updates Homebrew, which isn't installed. Install it with 'wb tools install brew'."
+        return 1
+    fi
+    brew-update || return $?
+    log_info "distro-update: macOS itself updates from System Settings > General > Software Update ('softwareupdate --list' shows what's waiting)."
 }
 
 distro-upgrade() {

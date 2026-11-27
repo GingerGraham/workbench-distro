@@ -1,6 +1,6 @@
 # workbench-distro
 
-Distro updates, release upgrades, unattended updates and package-manager tuning for the
+Distro and Homebrew updates, release upgrades, unattended updates and package-manager tuning for the
 [`workbench`](https://github.com/GingerGraham/workbench-core) ecosystem.
 
 An **ecosystem module**: meaningless standalone. It needs `workbench-core`
@@ -20,7 +20,8 @@ reason, by `get-distro-functions` and `wb functions`.
 
 | Command | Loads on | Does |
 |---|---|---|
-| `distro-update [--no-flatpak]` | every Linux host | Runs this family's updater, then `flatpak update` if Flatpak is installed, then says whether a reboot is recommended. |
+| `distro-update [--no-flatpak] [--no-brew]` | every Linux host, macOS | Linux: this family's updater, then `flatpak update` if Flatpak is installed, then Homebrew if it's installed, then says whether a reboot is recommended. macOS: Homebrew. |
+| `brew-update [--greedy] [--cleanup]` | wherever `brew` is on `PATH` | `brew update`, `brew upgrade`, optionally `brew cleanup`. Never as root. |
 | `distro-upgrade [<target>]` | every Linux host | Calls this distribution's release-upgrade command. Says so on rolling releases. |
 | `distro-reboot-required` | every Linux host | Exit 0 when a reboot is recommended, 1 when not, 2 when it can't tell. |
 | `distro-info` | every Linux host | Family, ID, version, WSL, container, rpm-ostree and DNF generation, for bug reports. |
@@ -35,6 +36,7 @@ reason, by `get-distro-functions` and `wb functions`.
 | `opensuse-release-upgrade [--dry-run]` | openSUSE Leap | Wraps `opensuse-migration-tool`. |
 | `wb tools install dnf-tuning` | Fedora, RHEL family, DNF 5 | Writes `/etc/dnf/libdnf5.conf.d/50-workbench.conf`. |
 | `wb tools install auto-updates` | Fedora, RHEL family, Debian, Ubuntu, Pop!_OS, SUSE family, with systemd | Turns on the distribution's own unattended updates: security only or all, with an optional reboot. |
+| `wb tools install brew` | macOS; Linux x86_64 and aarch64 | Installs Homebrew (see [Homebrew](#homebrew)). With brew already there, runs `brew update`. |
 | `distro-auto-updates [status\|off]` | Fedora, RHEL family, Debian, Ubuntu, Pop!_OS, SUSE family | Shows what runs unattended updates, with what settings, and when. `off` undoes what workbench did. Exit 0 on, 1 off, 2 unsupported or unknown. |
 
 The routine `*-update` commands run without asking, as the dotfiles aliases
@@ -51,12 +53,17 @@ terminal and a typed word before the step that can't be undone.
   in containers; both are refused on rpm-ostree, with the `rpm-ostree` command
   to use.
 - Edit your `/etc/dnf/dnf.conf`.
+- Schedule Homebrew upgrades. `distro-update` and `brew-update` run when you run them.
+- Read a Brewfile, or uninstall Homebrew (see [Homebrew](#homebrew)).
+- Update macOS itself. `distro-update` prints where that happens.
 
 ## Shell functions
 
 ```sh
 distro-update                 # everything this host updates with, then Flatpak
 distro-update --no-flatpak
+distro-update --no-brew        # Linux: leave Homebrew out
+brew-update --cleanup         # brew update, brew upgrade, brew cleanup
 distro-upgrade 45             # on Fedora: fedora-release-upgrade 45
 distro-reboot-required && echo "reboot"
 distro-info                   # paste this into a bug report
@@ -334,10 +341,87 @@ sudo unattended-upgrade --dry-run --debug       # apt
 SUSE and DNF 4 have been tested with stand-in commands only, not on a real
 host.
 
+## Homebrew
+
+`wb tools install brew` installs Homebrew, and `brew-update` and `distro-update`
+keep it current. Nothing installs it as a side effect: on Linux it is opt-in,
+through this command, the question about Homebrew's prerequisites, and
+Homebrew's own installer asking before it starts.
+
+| Host | Route |
+|---|---|
+| macOS, Apple Silicon, macOS 15 or later | Homebrew's signed `.pkg` from the latest Homebrew/brew release. workbench checks GitHub's published SHA-256, then the Developer ID signature and its Team ID, then Gatekeeper, and only then runs `sudo installer`. |
+| macOS, Apple Silicon, macOS 11-14 | Homebrew's `install.sh`, with a warning: Homebrew supports these releases at Tier 3 only and doesn't offer the `.pkg` for them. |
+| macOS, Intel | Refused, with Homebrew's reason. Homebrew's installer stops on Intel Macs ("only supported on Apple Silicon processors"). A Homebrew that is already installed is still found and updated. |
+| macOS 10.15 or earlier | Refused. Homebrew 7.0 no longer runs there. |
+| Linux, x86_64 or aarch64 | Reports the prerequisites that are missing, asks once, installs them with your package manager, then runs `install.sh` on your terminal. |
+| Linux, anything else | Refused. 32-bit has no bottles and no support. |
+
+Root is refused: Homebrew doesn't run as root. Run it as your own user.
+
+### Linux prerequisites
+
+Homebrew's installer needs `gcc`, `make`, `curl`, `file`, `git` and `ps`. If
+any is missing, workbench prints what it would run and asks before running it:
+
+| Family | Runs |
+|---|---|
+| Debian, Ubuntu, Pop!_OS | `apt-get install -y build-essential procps curl file git` |
+| Fedora | `dnf group install -y development-tools`, then `dnf install -y procps-ng curl file git-core` |
+| RHEL, Rocky, AlmaLinux, CentOS Stream | `dnf group install -y development`, then the same `dnf install` |
+| Arch | `pacman -S --needed --noconfirm base-devel procps-ng curl file git` |
+| SUSE | `zypper install -t pattern devel_basis`, then `zypper install procps curl file git` |
+
+Each line runs with `sudo` or `run0`. Fedora's `development-tools` group is
+large. Without a terminal, nothing is changed and the command stops.
+
+### Where it goes on `PATH`
+
+`workbench-core` puts an installed Homebrew on `PATH` before any module loads,
+so tools it installed are found by every module. On macOS that is the front of
+`PATH`, as Homebrew does. On Linux it is the end, so your distribution's
+packages still win where both provide a command. `WORKBENCH_BREW_PATH=front`,
+`end` or `off` in `~/.config/workbench/local/settings.sh` changes that, and a
+directory already on `PATH` is never moved. See
+[Your own settings](https://github.com/GingerGraham/workbench-core/blob/main/docs/guide/getting-started.md#your-own-settings-functions-and-aliases).
+
+### A Homebrew you installed yourself
+
+workbench finds it in `/opt/homebrew`, `/usr/local`, `/home/linuxbrew/.linuxbrew`
+or `~/.linuxbrew`, or through `HOMEBREW_PREFIX`. `wb tools upgrade brew` runs
+`brew update` on it, and `brew-update` and `distro-update` upgrade its packages.
+
+### `brew-update` and `distro-update`
+
+`brew-update` runs `brew update`, then `brew upgrade`. `--greedy` also upgrades
+casks that update themselves, and `--cleanup` finishes with `brew cleanup`.
+
+On Linux, `distro-update` runs `brew-update` last, after Flatpak. A Homebrew
+failure warns and the exit status stays 0, as Flatpak's does, because the system
+packages did update. `--no-brew` skips it. On macOS Homebrew is the whole job,
+so a failure is the exit status, and `distro-update` says where macOS itself
+updates (System Settings > General > Software Update, or `softwareupdate --list`).
+
+### What is downloaded and run
+
+`install.sh` is fetched from `Homebrew/install` at `HEAD` and run as it is, the
+same trust as the installers for starship and oh-my-posh: the script is
+Homebrew's, and workbench doesn't pin it. The `.pkg` is checked before it is
+installed. The pinned Team ID belongs to an individual Homebrew maintainer, so
+if Homebrew changes who signs the package the install stops with a message
+rather than loosening the check.
+
+### Uninstalling
+
+Use Homebrew's own
+[uninstall script](https://github.com/Homebrew/install#uninstall-homebrew).
+`wb uninstall` leaves Homebrew installed and its notes give the line that keeps
+it on `PATH`.
+
 ## Requires
 
-- `workbench-core` with `CORE_API_VERSION` 1.11 or later (exact-ID distro
-  files).
+- `workbench-core` with `CORE_API_VERSION` 1.14 or later (Homebrew on `PATH`
+  before any module loads; exact-ID distro files came in 1.11).
 - `curl`, for `debian-release-upgrade`.
 - `systemd`, for `wb tools install auto-updates` (every backend is a timer).
 - `dnf5-plugins` (DNF 5) or `dnf-plugins-core` (DNF 4), for
